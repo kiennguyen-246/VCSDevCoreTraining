@@ -1,0 +1,6 @@
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/server/build/CMakeFiles/EventLogger.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/server/build/CMakeFiles/ServerSocket.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/server/build/CMakeFiles/Server.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/server/build/CMakeFiles/ratServer.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/server/build/CMakeFiles/edit_cache.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/server/build/CMakeFiles/rebuild_cache.dir

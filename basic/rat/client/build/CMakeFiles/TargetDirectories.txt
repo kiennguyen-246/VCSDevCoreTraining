@@ -1,0 +1,6 @@
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/client/build/CMakeFiles/CommandManager.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/client/build/CMakeFiles/ClientSocket.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/client/build/CMakeFiles/Client.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/client/build/CMakeFiles/rat.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/client/build/CMakeFiles/edit_cache.dir
+/home/kiennd19/Documents/code/devcore_learn/basic/rat/client/build/CMakeFiles/rebuild_cache.dir
