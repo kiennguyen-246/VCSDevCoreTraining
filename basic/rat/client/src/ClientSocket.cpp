@@ -32,6 +32,7 @@ int ClientSocket::connectToSocket(std::string sIpv4Addr, int iPort) {
 }
 
 int ClientSocket::sendMsg(std::string sMsg) {
+  sMsg += "~";
   if (send(iFdClientSocket, sMsg.c_str(), sMsg.size(), 0) == -1) {
     std::cout << std::format("Failed to send some messages to the server {}\n",
                              errno);

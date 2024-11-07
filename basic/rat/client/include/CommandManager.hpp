@@ -31,7 +31,5 @@ class CommandManager {
 
   bool ps(std::string* psOutput, bool* pbIsTruncated);
 
-  bool kill(std::string sProcName, std::string* psOutput, bool* pbIsTruncated);
-
-  bool kill(unsigned int uiPid, std::string* psOutput, bool* pbIsTruncated);
+  bool kill(std::string sPid, std::string* psOutput, bool* pbIsTruncated);
 };

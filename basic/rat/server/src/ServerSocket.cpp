@@ -60,28 +60,42 @@ int ServerSocket::sendMsgWithReply(std::string sDestination,
 
   char pcRecvBuffer[1024];
   int iRecvBufferLen = sizeof(pcRecvBuffer);
-  memset(pcRecvBuffer, 0, sizeof(pcRecvBuffer));
-  iResult = recv(iFdClientSocket, pcRecvBuffer, iRecvBufferLen, 0);
+  iResult = 0;
+  *psReply = "";
+  do {
+    memset(pcRecvBuffer, 0, sizeof(pcRecvBuffer));
+    iResult = recv(iFdClientSocket, pcRecvBuffer, iRecvBufferLen, 0);
+    // std::cout << iResult << " " << errno << "\n";
+
+    if (iResult == -1) {
+      logEvent(std::format("recv() failed {}", errno), LOG_TYPE_ERROR);
+      // std::cout << "Receive failed " << errno << "\n";
+      return errno;
+    }
+
+    // std::cout << std::string(pcRecvBuffer) << "\n\n\n";
+
+    *psReply += pcRecvBuffer;
+    if (psReply->back() == '~') {
+      break;
+    }
+  } while (iResult);
 
   // std::cout << iResult << " " << errno << "\n";
-  if (iResult == 0) {
+  if (psReply->empty()) {
     umClientSockets.erase(sDestination);
-    std::cout
-        << "Received empty message from the client. Server will abort this "
-           "connection.\n";
-    logEvent(
-        "Received empty message from the client. Server will abort this "
-        "connection.",
-        LOG_TYPE_WARNING);
+    std::cout << std::format(
+        "Received empty message from the client at {}. Server will abort this "
+        "connection.\n",
+        sDestination);
+    logEvent(std::format("Received empty message from the client at {}. Server "
+                         "will abort this connection.\n",
+                         sDestination),
+             LOG_TYPE_WARNING);
     return -1;
   }
-  if (iResult == -1) {
-    logEvent(std::format("recv() failed {}", errno), LOG_TYPE_ERROR);
-    // std::cout << "Receive failed " << errno << "\n";
-    return errno;
-  }
 
-  *psReply = pcRecvBuffer;
+  psReply->pop_back();
   return 0;
 }
 

@@ -19,7 +19,7 @@ class ServerSocket {
 
   std::string getServerIpv4Addr();
 
-  std::vector<std::string> getClientsAddress() {
+  std::vector<std::string> getClientsAddresses() {
     std::vector<std::string> vRet;
     for (auto p : umClientSockets) {
       vRet.push_back(p.first);
