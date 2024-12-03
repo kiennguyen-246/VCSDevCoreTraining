@@ -1,12 +1,14 @@
+#ifdef __linux__
 #include <mqueue.h>
 #include <unistd.h>
+#endif
 
 #include <format>
 #include <future>
 #include <iostream>
-#include <sstream>
-#include <queue>
 #include <mutex>
+#include <queue>
+#include <sstream>
 
 #include "Configuration.hpp"
 #include "utils/EventLogger.hpp"
@@ -28,8 +30,10 @@ class PmonUIController {
   std::future<int> fHandleNotificationThread;
   std::queue<Configuration*> qConfigQueue;
   std::mutex mtx;
+#ifdef __linux__
   mqd_t mqdRecvEvent;
   mqd_t mqdSendConfigChangeReq;
+#endif
   bool bStop;
 
   PmonUIController();

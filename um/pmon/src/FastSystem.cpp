@@ -1,5 +1,6 @@
 #include "utils/FastSystem.hpp"
 
+#ifdef __linux__
 int FastSystem::system(const std::string& sCmd, std::string& sOutput) {
   std::string sResolvedCmd = Utils::resolveHomeDir(sCmd);
 
@@ -95,6 +96,7 @@ int FastSystem::system(const std::string& sCmd, std::string& sOutput) {
   }
   return 0;
 }
+#endif
 
 int FastSystem::mkdir(const std::string& sDir, const std::string& sOptions) {
   std::string sOutput;

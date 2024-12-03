@@ -38,6 +38,7 @@ std::string Process::toString() {
       iPid, dCpu, dRam, dDisk, dNet);
 }
 
+#ifdef __linux__
 int Process::updateCpu() {
   unsigned long long ullCurCpuTime = 0;
   unsigned long long ullCurSysCpuTime = 0;
@@ -127,7 +128,6 @@ int Process::updateDisk() {
   return 0;
 }
 
-int Process::updateNet() {
-  dNet = 0;
-  return 0;
-}
+int Process::updateNet() { return 0; }
+
+#endif

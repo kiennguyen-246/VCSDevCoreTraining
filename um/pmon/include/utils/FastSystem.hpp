@@ -1,5 +1,10 @@
+#ifndef FAST_SYSTEM_HPP
+#define FAST_SYSTEM_HPP
+
+#ifdef __linux__
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 #include <cstdlib>
 #include <cstring>
@@ -23,3 +28,5 @@ int pgrep(const std::string& sProcName, std::vector<int>& viRet,
 
 int rm(const std::string& sPath, const std::string& sOptions = "");
 };  // namespace FastSystem
+
+#endif

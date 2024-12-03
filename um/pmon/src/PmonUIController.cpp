@@ -32,6 +32,7 @@ PmonUIController::PmonUIController() {}
 
 PmonUIController::~PmonUIController() {}
 
+#ifdef __linux__
 int PmonUIController::init() {
   int iResult = 0;
 
@@ -287,3 +288,4 @@ int PmonUIController::requestDeleteConfig(const std::string& sProcName) {
 }
 
 PmonUIController* PmonUIController::pInstance = nullptr;
+#endif

@@ -32,6 +32,7 @@ PmonController::PmonController() {}
 
 PmonController::~PmonController() {}
 
+#ifdef __linux__
 int PmonController::init() {
   int iResult = 0;
 
@@ -497,3 +498,4 @@ int PmonController::parseConfigFile(const std::string sConfigFilePath,
 }
 
 PmonController* PmonController::pInstance = nullptr;
+#endif

@@ -1,5 +1,7 @@
+#ifdef __linux__
 #include <mqueue.h>
 #include <sys/wait.h>
+#endif
 
 #include <cstring>
 #include <fstream>
@@ -36,8 +38,10 @@ class PmonController {
   std::mutex mtx;
   std::queue<Event*> qEvents;
   std::set<std::string> sOpeningFiles;
+#ifdef __linux__
   mqd_t mqdSendEvent;
   mqd_t mqdRecvConfigChange;
+#endif
   bool bStop;
 
   PmonController();
