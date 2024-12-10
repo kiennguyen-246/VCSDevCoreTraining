@@ -1,9 +1,15 @@
 #ifndef CONFIGURATION_HPP
 #define CONFIGURATION_HPP
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include <cstring>
 #include <format>
 #include <iostream>
+
+#include "utils/WinSafe.hpp"
 
 typedef struct _MINI_CONFIGURATION {
   char pcName[256];

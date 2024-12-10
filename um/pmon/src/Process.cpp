@@ -3,6 +3,8 @@
 Process::Process(int __iPid) {
   iPid = __iPid;
   tLastUpdated = 0;
+  dCpu = dRam = dDisk = dNet = 0;
+  ullLastCpuTime = ullLastSysCpuTime = ullLastRchar = ullLastWchar = 0;
   updateInfo();
 }
 
@@ -32,10 +34,11 @@ int Process::updateInfo() {
 }
 
 std::string Process::toString() {
-  return std::format(
+  std::string ret = std::format(
       "{{ \"pid\": {}, \"cpu\": {:.2f}, \"ram\": {:.2f}, \"disk\": {:.2f}, "
       "\"net\": {:.2f} }}",
       iPid, dCpu, dRam, dDisk, dNet);
+  return ret;
 }
 
 #ifdef __linux__
@@ -120,7 +123,158 @@ int Process::updateDisk() {
   time_t tNow = time(NULL);
   if (tLastUpdated) {
     dDisk = (double)(ullCurRchar + ullCurWchar - ullLastRchar - ullLastWchar) /
-            (tNow - tLastUpdated) / 1e6;
+            (tNow - tLastUpdated) / (1 << 20);
+  }
+  ullLastRchar = ullCurRchar;
+  ullLastWchar = ullCurWchar;
+
+  return 0;
+}
+
+int Process::updateNet() { return 0; }
+
+#endif
+
+#ifdef _WIN32
+int Process::updateCpu() {
+  int iResult = 0;
+  unsigned long long ullCurCpuTime = 0;
+  unsigned long long ullCurSysCpuTime = 0;
+
+  HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, iPid);
+  if (!hProc) {
+    iResult = GetLastError();
+    logEvent(std::format("OpenProcess() failed {} for process PID {}", iResult,
+                         iPid),
+             LOG_TYPE_ERROR);
+    return iResult;
+  }
+
+  FILETIME ftProcCreation, ftProcExit, ftProcKernel, ftProcUser;
+  if (!GetProcessTimes(hProc, &ftProcCreation, &ftProcExit, &ftProcKernel,
+                       &ftProcUser)) {
+    iResult = GetLastError();
+    logEvent(std::format("GetProcessTimes() failed {} for process PID {}",
+                         iResult, iPid),
+             LOG_TYPE_ERROR);
+    CloseHandle(hProc);
+    return iResult;
+  }
+
+  if (!CloseHandle(hProc)) {
+    iResult = GetLastError();
+    logEvent(std::format("CloseHandle() failed {} for process PID {}", iResult,
+                         iPid),
+             LOG_TYPE_ERROR);
+    return iResult;
+  }
+
+  FILETIME ftSysIdle, ftSysKernel, ftSysUser;
+  if (!GetSystemTimes(&ftSysIdle, &ftSysKernel, &ftSysUser)) {
+    iResult = GetLastError();
+    std::cout << std::format("GetSystemTimes() failed {}", iResult);
+    CloseHandle(hProc);
+    return iResult;
+  }
+
+  ullCurCpuTime =
+      ULARGE_INTEGER{ftProcKernel.dwLowDateTime, ftProcKernel.dwHighDateTime}
+          .QuadPart +
+      ULARGE_INTEGER{ftProcUser.dwLowDateTime, ftProcUser.dwHighDateTime}
+          .QuadPart;
+  ullCurSysCpuTime =
+      ULARGE_INTEGER{ftSysKernel.dwLowDateTime, ftSysKernel.dwHighDateTime}
+          .QuadPart +
+      ULARGE_INTEGER{ftSysUser.dwLowDateTime, ftSysUser.dwHighDateTime}
+          .QuadPart;
+
+  if (tLastUpdated) {
+    dCpu = (double)(ullCurCpuTime - ullLastCpuTime) /
+           (ullCurSysCpuTime - ullLastSysCpuTime) * 100;
+  }
+
+  ullLastCpuTime = ullCurCpuTime;
+  ullLastSysCpuTime = ullCurSysCpuTime;
+
+  return iResult;
+}
+
+int Process::updateRam() {
+  int iResult = 0;
+
+  HANDLE hProc =
+      OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, iPid);
+  if (!hProc) {
+    iResult = GetLastError();
+    logEvent(std::format("OpenProcess() failed {} for process PID {}", iResult,
+                         iPid),
+             LOG_TYPE_ERROR);
+    return iResult;
+  }
+
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (!GetProcessMemoryInfo(hProc, &pmc, sizeof(PROCESS_MEMORY_COUNTERS))) {
+    iResult = GetLastError();
+    logEvent(std::format("GetProcessMemoryInfo() failed {} for process PID {}",
+                         iResult, iPid),
+             LOG_TYPE_ERROR);
+    CloseHandle(hProc);
+    return iResult;
+  }
+
+  if (!CloseHandle(hProc)) {
+    iResult = GetLastError();
+    logEvent(std::format("CloseHandle() failed {} for process PID {}", iResult,
+                         iPid),
+             LOG_TYPE_ERROR);
+    return iResult;
+  }
+
+  dRam = (double)pmc.WorkingSetSize / (1 << 20);
+
+  return iResult;
+}
+
+int Process::updateDisk() {
+  int iResult = 0;
+
+  unsigned long long ullCurRchar = 0;
+  unsigned long long ullCurWchar = 0;
+
+  HANDLE hProc =
+      OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, iPid);
+  if (!hProc) {
+    iResult = GetLastError();
+    logEvent(std::format("OpenProcess() failed {} for process PID {}", iResult,
+                         iPid),
+             LOG_TYPE_ERROR);
+    return iResult;
+  }
+
+  IO_COUNTERS ioc;
+  if (!GetProcessIoCounters(hProc, &ioc)) {
+    iResult = GetLastError();
+    logEvent(std::format("OpenProcess() failed {} for process PID {}", iResult,
+                         iPid),
+             LOG_TYPE_ERROR);
+    return iResult;
+  }
+
+  if (!CloseHandle(hProc)) {
+    iResult = GetLastError();
+    logEvent(std::format("CloseHandle() failed {} for process PID {}", iResult,
+                         iPid),
+             LOG_TYPE_ERROR);
+    return iResult;
+  }
+
+  ullCurRchar = ioc.ReadTransferCount;
+  ullCurWchar = ioc.WriteTransferCount;
+
+  time_t tNow = time(NULL);
+  if (tLastUpdated) {
+    dDisk = (double)(ullCurRchar + ullCurWchar - ullLastRchar - ullLastWchar) /
+            (tNow - tLastUpdated) / (1 << 20);
   }
   ullLastRchar = ullCurRchar;
   ullLastWchar = ullCurWchar;

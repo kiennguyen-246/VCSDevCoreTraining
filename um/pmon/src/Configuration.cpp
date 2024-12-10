@@ -12,7 +12,7 @@ Configuration::Configuration(std::string __sName, double __dCpu, double __dRam,
 }
 
 Configuration::Configuration(MINI_CONFIGURATION mcfg) {
-  sName = std::string(mcfg.pcName);
+  sName = mcfg.pcName;
   dCpu = mcfg.dCpu;
   dRam = mcfg.dRam;
   dDisk = mcfg.dDisk;
@@ -43,8 +43,9 @@ MINI_CONFIGURATION Configuration::minimize() const {
 }
 
 std::string Configuration::toString() const {
-  return std::format(
+  std::string ret = std::format(
       "{{ \"procName\": \"{}\", \"cpu\": {:.2f}, \"ram\": {:.2f}, \"disk\": "
       "{:.2f}, \"net\": {:.2f} }}",
       sName, dCpu, dRam, dDisk, dNet);
+  return ret;
 }

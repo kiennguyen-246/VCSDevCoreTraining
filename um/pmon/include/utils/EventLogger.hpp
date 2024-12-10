@@ -1,17 +1,31 @@
 #ifndef EVENT_LOGGER_HPP
 #define EVENT_LOGGER_HPP
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif  // _WIN32
+
+
 #include <chrono>
 #include <ctime>
 #include <fstream>
 #include <iostream>
 
+#include "utils/Utils.hpp"
+
 // #define setLogDir(dir) EventLogger::getInstance()->__setLogDir(dir)
 // #define logEvent(event, type) \
 //   EventLogger::getInstance()->__logEvent(event, type)
 
-const std::string DEFAUT_LOG_DIR_PATH = std::string(getenv("HOME")) + "/logs";
+#ifdef __linux__
+const std::string DEFAUT_LOG_DIR_PATH = "~/logs";
 const std::string DEFAUT_LOG_FILE_PATH = DEFAUT_LOG_DIR_PATH + "/logfile.log ";
+#endif
+
+#ifdef _WIN32
+const std::string DEFAUT_LOG_DIR_PATH = "~\\AppData\\Local\\EventLogger";
+const std::string DEFAUT_LOG_FILE_PATH = DEFAUT_LOG_DIR_PATH + "\\logfile.log ";
+#endif
 
 typedef enum __LOG_TYPE {
   LOG_TYPE_INFO,

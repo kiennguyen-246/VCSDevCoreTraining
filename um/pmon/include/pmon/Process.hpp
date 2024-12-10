@@ -1,6 +1,11 @@
 #ifndef PROCESS_HPP
 #define PROCESS_HPP
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <psapi.h>
+#endif
+
 #include <format>
 #include <fstream>
 #include <iostream>

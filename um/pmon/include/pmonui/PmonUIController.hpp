@@ -2,6 +2,9 @@
 #include <mqueue.h>
 #include <unistd.h>
 #endif
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 #include <format>
 #include <future>
@@ -15,8 +18,15 @@
 #include "utils/FastSystem.hpp"
 
 const std::string EVENT_DIR_PATH = "events/";
+#ifdef __linux__
 const std::string MQ_RECV_EVENT_NAME = "/mqpmonevt";
 const std::string MQ_SEND_CONFIG_CHANGE_REQUEST_NAME = "/mqpmoncfg";
+#endif
+#ifdef _WIN32
+const std::string NP_NAME_RECV_EVENT = "\\\\.\\pipe\\nppmonevt";
+const std::string NP_NAME_SEND_CONFIG_CHANGE_REQUEST = "\\\\.\\pipe\\nppmoncfg";
+const int NP_MAX_BUFFER_SIZE = 1024;
+#endif
 
 class PmonUIController {
  public:
@@ -34,6 +44,11 @@ class PmonUIController {
   mqd_t mqdRecvEvent;
   mqd_t mqdSendConfigChangeReq;
 #endif
+#ifdef _WIN32
+  HANDLE hNpRecvEvent;
+  HANDLE hNpSendConfigChangeReq;
+#endif
+
   bool bStop;
 
   PmonUIController();

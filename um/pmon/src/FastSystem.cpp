@@ -32,7 +32,7 @@ int FastSystem::system(const std::string& sCmd, std::string& sOutput) {
   }
 
   ppcArgs[vsArgs.size()] = NULL;
-  // std::cout << std::string(ppcArgs[0]) << "\n";
+  // std::cout << ppcArgs[0] << "\n";
   if (pipe(piFds) == -1) {
     logEvent(std::format("pipe() failed {}", errno), LOG_TYPE_ERROR);
   }
@@ -79,7 +79,7 @@ int FastSystem::system(const std::string& sCmd, std::string& sOutput) {
         if (iBytesRead == 0) {
           break;
         }
-        sOutput += std::string(pcBuffer);
+        sOutput += pcBuffer;
       }
 
       for (int i = 0; i <= vsArgs.size(); i++) {
@@ -96,7 +96,6 @@ int FastSystem::system(const std::string& sCmd, std::string& sOutput) {
   }
   return 0;
 }
-#endif
 
 int FastSystem::mkdir(const std::string& sDir, const std::string& sOptions) {
   std::string sOutput;
@@ -174,3 +173,5 @@ int FastSystem::rm(const std::string& sPath, const std::string& sOptions) {
   }
   return 0;
 }
+
+#endif

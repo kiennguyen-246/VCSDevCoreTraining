@@ -14,8 +14,13 @@ int EventLogger::setLogDir(std::string sNewLogDir) {
 
 int EventLogger::logEvent(std::string sEvent, LOG_TYPE logType) {
   time_t tNow = time(0);
+#ifdef _WIN32
+  tm tmLocal{};
+  tm* ptm = &tmLocal;
+  localtime_s(ptm, &tNow);
+#else
   tm* ptm = localtime(&tNow);
-
+#endif
   int iYear = ptm->tm_year + 1900;
   int iMonth = ptm->tm_mon + 1;
   int iDay = ptm->tm_mday;
@@ -38,7 +43,7 @@ int EventLogger::logEvent(std::string sEvent, LOG_TYPE logType) {
       break;
   }
 
-  fo.open(sLogDir, std::ios::app);
+  fo.open(Utils::resolveHomeDir(sLogDir), std::ios::app);
   fo << std::format("[{}/{}/{} {:02d}:{:02d}:{:02d}][{}] {}\n", iDay, iMonth,
                     iYear, iHour, iMinute, iSecond, sLogType, sEvent);
   fo.close();
@@ -48,7 +53,21 @@ int EventLogger::logEvent(std::string sEvent, LOG_TYPE logType) {
 EventLogger* EventLogger::pInstance = nullptr;
 
 EventLogger::EventLogger() {
-  system(std::format("mkdir -p {}", DEFAUT_LOG_DIR_PATH).c_str());
+#ifdef __linux
+  system(std::format("mkdir -p {}", Utils::resolveHomeDir(DEFAUT_LOG_DIR_PATH))
+             .c_str());
+#endif
+
+#ifdef _WIN32
+  if (!CreateDirectoryA(Utils::resolveHomeDir(DEFAUT_LOG_DIR_PATH).c_str(),
+                        NULL)) {
+    int iResult = GetLastError();
+    if (iResult != ERROR_ALREADY_EXISTS) {
+      std::cout << std::format(
+          "CreateDirectory failed {} while initialing event logger\n", iResult);
+    }
+  }
+#endif
   sLogDir = DEFAUT_LOG_FILE_PATH;
 }
 
