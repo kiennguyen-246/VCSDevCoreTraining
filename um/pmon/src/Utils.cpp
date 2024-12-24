@@ -25,7 +25,12 @@ std::string Utils::wstringToString(const std::wstring& wstr) {
   for (auto wc : wstr) {
     int i = 0;
     char pcRes[16];
+#ifdef __linux__
+    wctomb(pcRes, wc);
+#endif
+#ifdef _WIN32
     wctomb_s(&i, pcRes, 16, wc);
+#endif
     sRet.push_back(pcRes[0]);
   }
   return sRet;
