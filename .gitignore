@@ -1,3 +1,5 @@
 token.txt
-**/.vscode/
-**/build/
+**/.vscode
+**/build
+**/.vs
+**/x64
