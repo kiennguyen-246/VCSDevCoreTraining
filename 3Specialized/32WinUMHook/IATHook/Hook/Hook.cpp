@@ -66,16 +66,20 @@ BOOL reflectiveInject(std::wstring sDllPath, DWORD dwPid) {
   DWORD dwSizeOfImage = pNtHeader->OptionalHeader.SizeOfImage;
 
   // 3. Allocate memory at BaseOfImage with the size of dwSizeOfImage
-  ULONGLONG ullImageBase = pNtHeader->OptionalHeader.ImageBase;
+  HMODULE hKernel32 = GetModuleHandle(TEXT("kernel32.dll"));
+  ULONGLONG ullImageBase = (ULONGLONG)hKernel32;
   pDllInjectedBase = NULL;
   while (pDllInjectedBase == NULL) {
     pDllInjectedBase = VirtualAllocEx(
         hRemoteProcess, (PVOID)((PBYTE)ullImageBase), dwSizeOfImage,
         MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    // pDllInjectedBase =
+    //     VirtualAllocEx(hRemoteProcess, NULL, dwSizeOfImage,
+    //                    MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (pDllInjectedBase == NULL) {
       DWORD dwError = GetLastError();
       if (dwError == ERROR_INVALID_ADDRESS) {
-        ullImageBase += 0x10000;
+        ullImageBase -= 0x100000;
         continue;
       }
       std::wcout << L"VirtualAllocEx failed with error: " << dwError
@@ -172,7 +176,7 @@ BOOL reflectiveInject(std::wstring sDllPath, DWORD dwPid) {
 
   // 6.2. Iterate over import descriptors
   HMODULE hImportedLib = NULL;
-  HMODULE hKernel32 = GetModuleHandle(TEXT("kernel32.dll"));
+  //HMODULE hKernel32 = GetModuleHandle(TEXT("kernel32.dll"));
   while (TRUE) {
     IMAGE_IMPORT_DESCRIPTOR currentImportDescriptor;
     ReadProcessMemory(hRemoteProcess, pImportDescriptor,
@@ -242,7 +246,6 @@ BOOL reflectiveInject(std::wstring sDllPath, DWORD dwPid) {
     ++pImportDescriptor;
   }
 
-
   // 7. Call the DLL's entry point
   typedef BOOL(WINAPI * FPDLLMAIN)(HINSTANCE, DWORD, LPVOID);
   FPDLLMAIN fpDllMain =
@@ -255,30 +258,14 @@ BOOL reflectiveInject(std::wstring sDllPath, DWORD dwPid) {
   return TRUE;
 }
 
-BOOL hook(std::wstring wsLibName, std::wstring wsFuncName,
-          std::wstring wsHookFuncName, DWORD dwPid) {
+BOOL iatHook(std::wstring wsLibName, std::wstring wsFuncName,
+             std::wstring wsHookFuncName, DWORD dwPid) {
   HANDLE hRemoteProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPid);
   if (hRemoteProcess == NULL) {
     DWORD dwError = GetLastError();
     std::wcout << L"OpenProcess failed with error: " << dwError << std::endl;
     return FALSE;
   }
-
-  //// 1. Save the original address of the original function
-  // HMODULE hLib = LoadLibrary(wsLibName.c_str());
-  // if (!hLib) {
-  //   DWORD dwError = GetLastError();
-  //   std::wcout << L"LoadLibrary failed with error: " << dwError << std::endl;
-  //   return FALSE;
-  // }
-  // FARPROC fpFunc = GetProcAddress(hLib, wstringToString(wsFuncName).c_str());
-  // if (!fpFunc) {
-  //   DWORD dwError = GetLastError();
-  //   std::wcout << L"GetProcAddress failed with error: " << dwError <<
-  //   std::endl; return FALSE;
-  // }
-
-  // 2. Parse the IAT to find the function then replace it
 
   HMODULE hHookLib = LoadLibrary(L"FakeNotification.dll");
   typedef VOID (*FP_FIND_LOAD_PROCESS_IMAGE_BASE)();
@@ -293,10 +280,6 @@ BOOL hook(std::wstring wsLibName, std::wstring wsFuncName,
       NULL, 0, NULL);
   WaitForSingleObject(hRemoteThread, INFINITE);
 
-  // HANDLE hFile =
-  //     CreateFile(L"C:\\Users\\a\\Temp\\x", GENERIC_READ | GENERIC_WRITE,
-  //                FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS,
-  //                FILE_ATTRIBUTE_NORMAL, NULL);
   BYTE abBuffer[64];
   DWORD dwBytesRead = 0;
   ZeroMemory(abBuffer, 64);
@@ -375,16 +358,10 @@ BOOL hook(std::wstring wsLibName, std::wstring wsFuncName,
                         &abFunctionName, MAX_PATH, NULL);
       if (!std::string((PCHAR)((ULONGLONG)abFunctionName + 2))
                .compare(wstringToString(wsFuncName))) {
-        // ULONGLONG ullBytesWritten = 0;
         DWORD dwOldProtect = 0;
         FARPROC fpHookFunc =
             GetProcAddress(hHookLib, wstringToString(wsHookFuncName).c_str());
 
-        // hFile =
-        //     CreateFile(L"C:\\Users\\a\\Temp\\x", GENERIC_READ |
-        //     GENERIC_WRITE,
-        //                FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS,
-        //                FILE_ATTRIBUTE_NORMAL, NULL);
         ZeroMemory(abBuffer, 64);
         for (int i = 0; i < 63; i++) {
           abBuffer[63 - i] =
@@ -392,7 +369,6 @@ BOOL hook(std::wstring wsLibName, std::wstring wsFuncName,
         }
         DWORD dwBytesWritten = 0;
         WriteFile(hPipe, abBuffer, 64, &dwBytesWritten, NULL);
-        // CloseHandle(hFile);
 
         imageCurrentThunk.u1.Function =
             (ULONGLONG)pDllInjectedBase +
@@ -409,16 +385,142 @@ BOOL hook(std::wstring wsLibName, std::wstring wsFuncName,
     ++pImageCurrentImportDescriptor;
   }
 
-  // std::wstring wsMsg = L"ambatukam";
-  // PVOID pRemoteMsg =
-  //     VirtualAllocEx(hRemoteProcess, NULL, wsMsg.length() * sizeof(WCHAR),
-  //                    MEM_COMMIT, PAGE_READWRITE);
-  // WriteProcessMemory(hRemoteProcess, pRemoteMsg, (LPCVOID)wsMsg.c_str(),
-  //                    wsMsg.length() * sizeof(WCHAR), NULL);
+  FreeLibrary(hHookLib);
 
-  // CreateRemoteThread(hRemoteProcess, NULL, 0, (LPTHREAD_START_ROUTINE)fpFunc,
-  //                    pRemoteMsg, 0, NULL);
+  return TRUE;
+}
 
+BOOL inlineHook(std::wstring wsLibName, std::wstring wsFuncName,
+                std::wstring wsHookFuncName, DWORD dwPid) {
+  HANDLE hRemoteProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPid);
+  if (hRemoteProcess == NULL) {
+    DWORD dwError = GetLastError();
+    std::wcout << L"OpenProcess failed with error: " << dwError << std::endl;
+    return FALSE;
+  }
+
+  // 1. Identify the address of the target function
+  HMODULE hHookLib = LoadLibrary(L"FakeNotification.dll");
+  HMODULE hTargetLib = LoadLibrary(wsLibName.c_str());
+  FARPROC fpGetModuleAddress = GetProcAddress(hHookLib, "getModuleAddress");
+
+  std::string sLibName = wstringToString(wsLibName);
+  std::string sFuncName = wstringToString(wsFuncName);
+  PCHAR pRemoteLibName = (PCHAR)VirtualAllocEx(
+      hRemoteProcess, NULL, sLibName.size(), MEM_COMMIT, PAGE_READWRITE);
+  WriteProcessMemory(hRemoteProcess, pRemoteLibName, &sLibName[0],
+                     sLibName.size(), NULL);
+  HANDLE hRemoteThread = CreateRemoteThread(
+      hRemoteProcess, NULL, 0,
+      (LPTHREAD_START_ROUTINE)((ULONGLONG)pDllInjectedBase +
+                               ((ULONGLONG)fpGetModuleAddress -
+                                (ULONGLONG)hHookLib)),
+      pRemoteLibName, 0, NULL);
+  WaitForSingleObject(hRemoteThread, INFINITE);
+
+  BYTE abBuffer[64];
+  DWORD dwBytesRead = 0;
+  ZeroMemory(abBuffer, 64);
+  ReadFile(hPipe, abBuffer, 64, &dwBytesRead, NULL);
+  ULONGLONG ullRemoteTargetLibBase = 0;
+  for (int i = 0; i < 64; i++) {
+    ullRemoteTargetLibBase = ullRemoteTargetLibBase * 2 + (abBuffer[i] - '0');
+  }
+  PVOID pRemoteTargetLibBase = (PVOID)ullRemoteTargetLibBase;
+
+  FARPROC fpLocalTargetFunctionAddress =
+      GetProcAddress(hTargetLib, wstringToString(wsFuncName).c_str());
+  PVOID pRemoteTargetFunc = (PVOID)((ULONGLONG)pRemoteTargetLibBase +
+                                    ((ULONGLONG)fpLocalTargetFunctionAddress -
+                                     (ULONGLONG)hTargetLib));
+
+  // 2. Create and initialize the trampolines
+  // 2.1. Create the trampoline
+  PBYTE pbRemoteTrampoline = NULL;
+  HMODULE hKernel32 = GetModuleHandle(TEXT("kernel32.dll"));
+  ULONGLONG ullRemoteAllocAddress = (ULONGLONG)hKernel32;
+  while (pbRemoteTrampoline == NULL) {
+    pbRemoteTrampoline = (PBYTE)VirtualAllocEx(hRemoteProcess, (PVOID)ullRemoteAllocAddress, 10,
+                              MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    if (pbRemoteTrampoline == NULL) {
+      ullRemoteAllocAddress -= 0x100000;
+    }
+  }
+  BYTE abLocalTrampolineBuffer[10];
+
+  // 2.2. Load the first 5 bytes of the trampoline
+  ReadProcessMemory(hRemoteProcess, pRemoteTargetFunc, abLocalTrampolineBuffer,
+                    5, NULL);
+  if (abLocalTrampolineBuffer[0] != 0xe9) {
+    // 2.2.1. If it is not a jump instruction,  load "jmp <target address + 5>"
+    // at the rest of the buffer
+    abLocalTrampolineBuffer[5] = 0xe9;
+    INT iJumpOffset =
+        (INT)((LONGLONG)pRemoteTargetFunc - (LONGLONG)pbRemoteTrampoline - 5);
+    for (int i = 0; i < 4; ++i) {
+      abLocalTrampolineBuffer[i + 6] =
+          (((ULONGLONG)(iJumpOffset) + 5) >> (8 * i)) & 0xff;
+    }
+  } else {
+    // 2.2.2. If it is a jump instruction, change the offset to have the correct
+    // jump
+    ULONGLONG ullJumpTargetAddress = 0;
+    INT iJumpOffset = 0;
+    for (int i = 0; i < 4; ++i) {
+      iJumpOffset += (abLocalTrampolineBuffer[i + 1] << (8 * i));
+    }
+    ullJumpTargetAddress = (ULONGLONG)pRemoteTargetFunc + 5 + iJumpOffset;
+    INT iNewJumpOffset = (INT)((LONGLONG)ullJumpTargetAddress -
+                               (LONGLONG)pbRemoteTrampoline - 5);
+
+    abLocalTrampolineBuffer[0] = 0xe9;
+    for (int i = 0; i < 4; ++i) {
+      abLocalTrampolineBuffer[i + 1] = (iNewJumpOffset >> (8 * i)) & 0xff;
+    }
+    // abLocalTrampolineBuffer[5] = 0xe9;
+    // iJumpOffset =
+    //     (LONGLONG)pRemoteTargetFunc - (LONGLONG)pbRemoteTrampoline - 5;
+    // for (int i = 0; i < 4; ++i) {
+    //   abLocalTrampolineBuffer[i + 6] =
+    //       (((ULONGLONG)(iJumpOffset) + 5) >> (8 * i)) & 0xff;
+    // }
+  }
+
+  // 2.4. Commit the changes
+  WriteProcessMemory(hRemoteProcess, pbRemoteTrampoline,
+                     abLocalTrampolineBuffer, 10, NULL);
+
+  // 3. Send the location of the second trampoline to the injected library
+  ZeroMemory(abBuffer, 64);
+  for (int i = 0; i < 63; i++) {
+    abBuffer[63 - i] = (((ULONGLONG)(pbRemoteTrampoline) >> i) & 1) + '0';
+  }
+  DWORD dwBytesWritten = 0;
+  WriteFile(hPipe, abBuffer, 64, &dwBytesWritten, NULL);
+
+  // 4. Overwrite the first 5 bytes of the target function to "jmp <offset to
+  // hooked function>
+  FARPROC fpHookFunc =
+      GetProcAddress(hHookLib, wstringToString(wsHookFuncName).c_str());
+  PVOID pRemoteHookFunc =
+      (PVOID)((ULONGLONG)pDllInjectedBase +
+              ((ULONGLONG)fpHookFunc - (ULONGLONG)hHookLib));
+
+  BYTE abLocalOverwriteBuffer[5];
+  abLocalOverwriteBuffer[0] = 0xe9;
+  INT iJumpOffset = (INT)((LONGLONG)pRemoteHookFunc - (LONGLONG)pRemoteTargetFunc - 5);
+  for (int i = 0; i < 4; ++i) {
+    abLocalOverwriteBuffer[i + 1] =
+        ((ULONGLONG)(iJumpOffset) >> (8 * i)) & 0xff;
+  }
+
+  DWORD dwOldProtect = 0;
+  VirtualProtectEx(hRemoteProcess, pRemoteTargetFunc, 5, PAGE_EXECUTE_READWRITE,
+                   &dwOldProtect);
+  WriteProcessMemory(hRemoteProcess, pRemoteTargetFunc, abLocalOverwriteBuffer,
+                     5, NULL);
+
+  FreeLibrary(hTargetLib);
   FreeLibrary(hHookLib);
 
   return TRUE;
@@ -445,7 +547,7 @@ int wmain(DWORD argc, PWCHAR argv[]) {
   WaitForSingleObject(hThread, INFINITE);
   CloseHandle(hThread);
 
-  if (!hook(L"Notifications.dll", L"notify", L"fakeNotify", dwPid)) {
+  if (!inlineHook(L"Notifications.dll", L"notify", L"fakeNotify", dwPid)) {
     std::wcout << "Hooking failed\n";
     return 1;
   }
