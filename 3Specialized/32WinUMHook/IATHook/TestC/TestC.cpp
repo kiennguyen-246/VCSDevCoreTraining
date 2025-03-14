@@ -1,25 +1,22 @@
-// Test.cpp : This file contains the 'main' function. Program execution begins
+// TestC.cpp : This file contains the 'main' function. Program execution begins
 // and ends there.
 //
 
 #include <Windows.h>
 
 #include <iostream>
-#include <string>
 
-#include "Notifications.h"
-
-int localNotify(wchar_t* pwcMsg) {
-  return MessageBox(NULL, pwcMsg, L"Message Box from local process",
-                    MB_OK | MB_ICONASTERISK);
-}
+int func() { return 0; }
 
 int main() {
-  for (int i = 1; i <= 100; i++) {
-    Sleep(10000);
-    std::wstring wstr = std::to_wstring(10 * i) + L" seconds has passed";
-    notify(&wstr[0]);
-  }
+  std::cout << "Hello World!\n";
+
+  HMODULE hMod = LoadLibrary(L"user32.dll");
+  FARPROC fp = GetProcAddress(hMod, "MessageBoxA");
+  
+  BYTE x[10];
+  std::wcout << (ULONGLONG)fp << " " << (ULONGLONG)x;
+  return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
