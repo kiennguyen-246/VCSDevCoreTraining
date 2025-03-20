@@ -1,0 +1,1 @@
+cmd_/home/kiennd19/Documents/VCSDevCoreTraining/3Specialized/35LinuxKM/HelloWorld/modules.order := {   echo /home/kiennd19/Documents/VCSDevCoreTraining/3Specialized/35LinuxKM/HelloWorld/hello.ko; :; } > /home/kiennd19/Documents/VCSDevCoreTraining/3Specialized/35LinuxKM/HelloWorld/modules.order
