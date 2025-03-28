@@ -1,0 +1,51 @@
+[Version]
+Signature = "$Windows NT$"
+Provider = %Provider%
+Class = NetService
+ClassGuid = {4D36E974-E325-11CE-BFC1-08002BE10318}
+CatalogFile = "NetworkFilter.cat"
+DriverVer = 03/23/25,0.0.0.1
+PnpLockdown = 1
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+NetworkFilter.sys = 1
+
+[DestinationDirs]
+DefaultDestDir = 12 ; %windir%\system32\drivers
+NetworkFilter.DriverFiles = 12 ; %windir%\system32\drivers
+
+[DefaultInstall.NTamd64]
+OptionDesc = %Description%
+CopyFiles = NetworkFilter.DriverFiles
+
+[DefaultInstall.NTamd64.Services]
+AddService = %ServiceName%,,NetworkFilter.Service
+
+[DefaultUninstall.NTamd64]
+LegacyUninstall=1
+DelFiles = NetworkFilter.DriverFiles
+
+[DefaultUninstall.NTamd64.Services]
+LegacyUninstall=1
+DelService = NetworkFilter,0x200 ; SPSVCINST_STOPSERVICE
+
+[NetworkFilter.DriverFiles]
+NetworkFilter.sys,,,0x00000040 ; COPYFLG_OVERWRITE_OLDER_ONLY
+
+[NetworkFilter.Service]
+DisplayName = %ServiceName%
+Description = %ServiceDesc%
+ServiceType = 1  ; SERVICE_KERNEL_DRIVER
+StartType = 0    ; SERVICE_BOOT_START
+ErrorControl = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary = %12%\NetworkFilter.sys
+
+[Strings]
+Provider = "EastUnitel Cyber Security"
+DiskName = "Example Callout Driver Installation Disk"
+Description = "Example Callout Driver"
+ServiceName = "NetworkFilter"
+ServiceDesc = "Example Callout Driver"

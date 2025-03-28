@@ -1,0 +1,44 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35818.85
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkFilter", "NetworkFilter\NetworkFilter.vcxproj", "{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkFilterManager", "NetworkFilterManager\NetworkFilterManager.vcxproj", "{C2755481-523F-460C-97B5-AF90783FA031}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Debug|ARM64.Build.0 = Debug|ARM64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Debug|x64.ActiveCfg = Debug|x64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Debug|x64.Build.0 = Debug|x64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Debug|x64.Deploy.0 = Debug|x64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Release|ARM64.ActiveCfg = Release|ARM64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Release|ARM64.Build.0 = Release|ARM64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Release|ARM64.Deploy.0 = Release|ARM64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Release|x64.ActiveCfg = Release|x64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Release|x64.Build.0 = Release|x64
+		{EBE594E9-FAE5-07C8-66FA-ACCDB3035FC8}.Release|x64.Deploy.0 = Release|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Debug|ARM64.ActiveCfg = Debug|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Debug|ARM64.Build.0 = Debug|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Debug|x64.ActiveCfg = Debug|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Debug|x64.Build.0 = Debug|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Release|ARM64.ActiveCfg = Release|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Release|ARM64.Build.0 = Release|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Release|x64.ActiveCfg = Release|x64
+		{C2755481-523F-460C-97B5-AF90783FA031}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {08C49521-F577-4548-A14C-004CB7D65162}
+	EndGlobalSection
+EndGlobal

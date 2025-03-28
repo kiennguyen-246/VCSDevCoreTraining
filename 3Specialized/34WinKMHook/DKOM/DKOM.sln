@@ -6,6 +6,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DKOM", "DKOM\DKOM.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DKOMUM", "DKOMUM\DKOMUM.vcxproj", "{50A67CF8-403B-4FBD-8D4D-0139F453B788}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{5F69A42F-D235-43DB-A091-2AA88FAE8749}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -46,6 +48,18 @@ Global
 		{50A67CF8-403B-4FBD-8D4D-0139F453B788}.Release|x64.Build.0 = Release|x64
 		{50A67CF8-403B-4FBD-8D4D-0139F453B788}.Release|x86.ActiveCfg = Release|Win32
 		{50A67CF8-403B-4FBD-8D4D-0139F453B788}.Release|x86.Build.0 = Release|Win32
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Debug|ARM64.ActiveCfg = Debug|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Debug|ARM64.Build.0 = Debug|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Debug|x64.ActiveCfg = Debug|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Debug|x64.Build.0 = Debug|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Debug|x86.ActiveCfg = Debug|Win32
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Debug|x86.Build.0 = Debug|Win32
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Release|ARM64.ActiveCfg = Release|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Release|ARM64.Build.0 = Release|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Release|x64.ActiveCfg = Release|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Release|x64.Build.0 = Release|x64
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Release|x86.ActiveCfg = Release|Win32
+		{5F69A42F-D235-43DB-A091-2AA88FAE8749}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
