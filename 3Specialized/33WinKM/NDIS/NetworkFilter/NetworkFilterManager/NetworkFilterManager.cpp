@@ -7,6 +7,9 @@
 
 #include <iostream>
 
+#include "Public/event.h"
+#include "Public/ioctl.h"
+
 #define GUID_NULL \
   { 0, 0, 0, NULL }
 #define ERROR_MESSAGE_BOX(message) \
@@ -30,147 +33,21 @@ CONST GUID kCalloutGUID = {0x6d8dbf75,
                            0x4799,
                            {0xaa, 0x62, 0x10, 0xb9, 0xe0, 0x83, 0x16, 0x3f}};
 
+// {B3DDEEF8-0DC4-454E-8645-6BB93285A9F1}
+CONST GUID kFilterGUID = {0xb3ddeef8,
+                          0xdc4,
+                          0x454e,
+                          {0x86, 0x45, 0x6b, 0xb9, 0x32, 0x85, 0xa9, 0xf1}};
+
 CONST WCHAR kSessionName[] = L"Network Filter Manager Session";
 CONST WCHAR kCalloutName[] = L"Network Filter Callout";
 CONST WCHAR kInspectionFilterName[] = L"Connecting layer inspection";
+CONST WCHAR kDevicePath[] = L"\\\\.\\NetworkFilter";
 
-DWORD installProvider(CONST GUID* pProviderKey, PCWCHAR pwcProviderName,
-                      CONST GUID* pSublayerKey, PCWCHAR pwcSublayerName) {
-  DWORD dwRes;
-
-  HANDLE hEngine = NULL;
-  FWPM_SESSION fwpSession;
-  ZeroMemory(&fwpSession, sizeof(fwpSession));
-  fwpSession.displayData.name = (PWCHAR)kSessionName;
-  fwpSession.txnWaitTimeoutInMSec = INFINITE;
-  dwRes =
-      FwpmEngineOpen(NULL, RPC_C_AUTHN_DEFAULT, NULL, &fwpSession, &hEngine);
-  if (dwRes != ERROR_SUCCESS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmEngineOpen failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  dwRes = FwpmTransactionBegin(hEngine, 0);
-  if (dwRes != ERROR_SUCCESS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmTransactionBegin failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  FWPM_PROVIDER fwpProvider;
-  ZeroMemory(&fwpProvider, sizeof(fwpProvider));
-  fwpProvider.providerKey = *pProviderKey;
-  fwpProvider.displayData.name = (PWCHAR)pwcProviderName;
-  fwpProvider.flags = FWPM_PROVIDER_FLAG_PERSISTENT;
-  dwRes = FwpmProviderAdd(hEngine, &fwpProvider, NULL);
-  if (dwRes != ERROR_SUCCESS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmProviderAdd failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  FWPM_SUBLAYER fwpSublayer;
-  ZeroMemory(&fwpSublayer, sizeof(fwpSublayer));
-  fwpSublayer.subLayerKey = *pSublayerKey;
-  fwpSublayer.displayData.name = (PWCHAR)pwcSublayerName;
-  fwpSublayer.flags = FWPM_SUBLAYER_FLAG_PERSISTENT;
-  fwpSublayer.providerKey = (GUID*)pProviderKey;
-  fwpSublayer.weight = 0x8000;
-  dwRes = FwpmSubLayerAdd(hEngine, &fwpSublayer, NULL);
-  if (dwRes != ERROR_SUCCESS && dwRes != FWP_E_ALREADY_EXISTS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmSubLayerAdd failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  dwRes = FwpmTransactionCommit(hEngine);
-  if (dwRes != ERROR_SUCCESS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmTransactionCommit failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  FwpmEngineClose(hEngine);
-
-  INFO_MESSAGE_BOX(L"Successfully installed WFP Provider");
-
-  return ERROR_SUCCESS;
-}
-
-DWORD uninstallProvider(CONST GUID* pProviderKey, CONST GUID* pSublayerKey) {
-  DWORD dwRes;
-
-  HANDLE hEngine = NULL;
-  FWPM_SESSION fwpSession;
-  ZeroMemory(&fwpSession, sizeof(fwpSession));
-  fwpSession.displayData.name = (PWCHAR)kSessionName;
-  fwpSession.txnWaitTimeoutInMSec = INFINITE;
-  dwRes =
-      FwpmEngineOpen(NULL, RPC_C_AUTHN_DEFAULT, NULL, &fwpSession, &hEngine);
-  if (dwRes != ERROR_SUCCESS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmEngineOpen failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  dwRes = FwpmTransactionBegin(hEngine, 0);
-  if (dwRes != ERROR_SUCCESS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmTransactionBegin failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  dwRes = FwpmSubLayerDeleteByKey(hEngine, pSublayerKey);
-  if (dwRes != ERROR_SUCCESS && dwRes != FWP_E_SUBLAYER_NOT_FOUND) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmSubLayerDeleteByKey failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  dwRes = FwpmProviderDeleteByKey(hEngine, pProviderKey);
-  if (dwRes != ERROR_SUCCESS && dwRes != FWP_E_PROVIDER_NOT_FOUND) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmProviderDeleteByKey failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  dwRes = FwpmTransactionCommit(hEngine);
-  if (dwRes != ERROR_SUCCESS) {
-    WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmTransactionCommit failed 0x%08x\n", dwRes);
-    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
-    return dwRes;
-  }
-
-  FwpmEngineClose(hEngine);
-
-  INFO_MESSAGE_BOX(L"Successfully uninstalled WFP Provider");
-
-  return ERROR_SUCCESS;
-}
+BOOL bIsStopped = 0;
 
 DWORD installCallout(CONST GUID* pProviderGUID, CONST GUID* pSublayerGUID,
-                 CONST GUID* pCalloutGUID) {
+                     CONST GUID* pCalloutGUID, CONST GUID* pFilterGUID) {
   DWORD dwRes;
 
   HANDLE hEngine = NULL;
@@ -215,6 +92,7 @@ DWORD installCallout(CONST GUID* pProviderGUID, CONST GUID* pSublayerGUID,
 
   FWPM_FILTER fwpmFilter;
   ZeroMemory(&fwpmFilter, sizeof(fwpmFilter));
+  fwpmFilter.filterKey = *pFilterGUID;
   fwpmFilter.providerKey = (GUID*)pProviderGUID;
   fwpmFilter.layerKey = *pSublayerGUID;
   fwpmFilter.action.type = FWP_ACTION_CALLOUT_UNKNOWN;
@@ -225,8 +103,8 @@ DWORD installCallout(CONST GUID* pProviderGUID, CONST GUID* pSublayerGUID,
   dwRes = FwpmFilterAdd(hEngine, &fwpmFilter, NULL, NULL);
   if (dwRes != ERROR_SUCCESS) {
     WCHAR acErrorMessageBuffer[MAX_PATH];
-    swprintf_s(acErrorMessageBuffer, MAX_PATH,
-               L"FwpmFilterAdd failed 0x%08x\n", dwRes);
+    swprintf_s(acErrorMessageBuffer, MAX_PATH, L"FwpmFilterAdd failed 0x%08x\n",
+               dwRes);
     ERROR_MESSAGE_BOX(acErrorMessageBuffer);
     return dwRes;
   }
@@ -247,23 +125,169 @@ DWORD installCallout(CONST GUID* pProviderGUID, CONST GUID* pSublayerGUID,
   return ERROR_SUCCESS;
 }
 
+DWORD uninstallCallout(CONST GUID* pCalloutGUID, CONST GUID* pFilterGUID) {
+  DWORD dwRes;
+
+  HANDLE hEngine = NULL;
+  FWPM_SESSION fwpSession;
+  ZeroMemory(&fwpSession, sizeof(fwpSession));
+  fwpSession.displayData.name = (PWCHAR)kSessionName;
+  fwpSession.txnWaitTimeoutInMSec = INFINITE;
+  dwRes =
+      FwpmEngineOpen(NULL, RPC_C_AUTHN_DEFAULT, NULL, &fwpSession, &hEngine);
+  if (dwRes != ERROR_SUCCESS) {
+    WCHAR acErrorMessageBuffer[MAX_PATH];
+    swprintf_s(acErrorMessageBuffer, MAX_PATH,
+               L"FwpmEngineOpen failed 0x%08x\n", dwRes);
+    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
+    return dwRes;
+  }
+
+  dwRes = FwpmTransactionBegin(hEngine, 0);
+  if (dwRes != ERROR_SUCCESS) {
+    WCHAR acErrorMessageBuffer[MAX_PATH];
+    swprintf_s(acErrorMessageBuffer, MAX_PATH,
+               L"FwpmTransactionBegin failed 0x%08x\n", dwRes);
+    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
+    return dwRes;
+  }
+
+  dwRes = FwpmFilterDeleteByKey(hEngine, pFilterGUID);
+  if (dwRes != ERROR_SUCCESS) {
+    WCHAR acErrorMessageBuffer[MAX_PATH];
+    swprintf_s(acErrorMessageBuffer, MAX_PATH,
+               L"FwpmFilterDeleteByKey failed 0x%08x\n", dwRes);
+    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
+    return dwRes;
+  }
+
+  std::wcout << L"Filter deleted\n";
+
+  dwRes = FwpmCalloutDeleteByKey(hEngine, pCalloutGUID);
+  if (dwRes != ERROR_SUCCESS) {
+    WCHAR acErrorMessageBuffer[MAX_PATH];
+    swprintf_s(acErrorMessageBuffer, MAX_PATH,
+               L"FwpmCalloutDeleteByKey failed 0x%08x\n", dwRes);
+    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
+    return dwRes;
+  }
+
+  std::wcout << L"Buffer deleted\n";
+
+  dwRes = FwpmTransactionCommit(hEngine);
+  if (dwRes != ERROR_SUCCESS) {
+    WCHAR acErrorMessageBuffer[MAX_PATH];
+    swprintf_s(acErrorMessageBuffer, MAX_PATH,
+               L"FwpmTransactionCommit failed 0x%08x\n", dwRes);
+    ERROR_MESSAGE_BOX(acErrorMessageBuffer);
+    return dwRes;
+  }
+
+  std::wcout << L"Committedd\n";
+
+  FwpmEngineClose(hEngine);
+
+  INFO_MESSAGE_BOX(L"Successfully uninstalled callout from the driver");
+
+  return ERROR_SUCCESS;
+}
+
+DWORD getEvent(CONST PEvent pRetEvent) {
+  DWORD dwErr = 0;
+
+  HANDLE hDevice = CreateFile(kDevicePath, GENERIC_READ | GENERIC_WRITE, 0,
+                              NULL, OPEN_EXISTING, 0, NULL);
+  CHAR acInputBuffer[] = ".";
+  DWORD dwBytesReturned = 0;
+  if (!DeviceIoControl(hDevice, IOCTL_GET_EVENT, acInputBuffer,
+                       sizeof(acInputBuffer), pRetEvent, sizeof(Event),
+                       &dwBytesReturned, NULL)) {
+    WCHAR acErrorMessageBuffer[MAX_PATH];
+    swprintf_s(acErrorMessageBuffer, MAX_PATH,
+               L"DeviceIoControl failed 0x%08x\n", dwErr);
+    std::wcout << acErrorMessageBuffer;
+    CloseHandle(hDevice);
+    return dwErr;
+  }
+
+  CloseHandle(hDevice);
+  return 0;
+}
+
+std::wstring getDottedDecimalAddress(DWORD dwIpAddress) {
+  WCHAR awcAddress[16] = L"";
+  swprintf_s(awcAddress, L"%d.%d.%d.%d", (dwIpAddress >> 0) & 0xff,
+             (dwIpAddress >> 8) & 0xff, (dwIpAddress >> 16) & 0xff,
+             (dwIpAddress >> 24) & 0xff);
+  std::wstring wsRet = awcAddress;
+  return wsRet;
+}
+
+VOID logEvent() {
+  Event evt;
+  if (getEvent(&evt) != 0) {
+    return;
+  }
+  if (evt.kernelHeader.uiIsValid != (UINT64)(-1)) {
+    wprintf(L"{\n");
+    wprintf(L"\tid: %lu,\n", evt.uiId);
+    wprintf(L"\tfilteringLayerId: %lu,\n", evt.uiFilteringLayerId);
+    wprintf(L"\tlocalAddress: \"%ws\",\n",
+            getDottedDecimalAddress(evt.uiLocalAddress).c_str());
+    wprintf(L"\tlocalPort: %lu,\n", evt.uiLocalPort);
+    wprintf(L"\tremoteAddress: \"%ws\",\n",
+            getDottedDecimalAddress(evt.uiRemoteAddress).c_str());
+    wprintf(L"\tremotePort: %lu,\n", evt.uiRemotePort);
+    wprintf(L"\tprotocolNumber: %lu,\n", evt.uiProtocolNumber);
+    wprintf(L"\tprocessId: %lu,\n", (DWORD)evt.uiProcessId);
+    wprintf(L"\tprocessPath: %ws,\n", evt.awcProcessPath);
+    wprintf(L"\tsourceInterfaceIndex: %lu,\n", evt.uiSourceInterfaceIndex);
+    wprintf(L"\tdestInterfaceIndex: %lu,\n", evt.uiDestInterfaceIndex);
+    wprintf(L"},\n");
+  }
+}
+
+VOID logEventRoutine() {
+  while (!bIsStopped) {
+    logEvent();
+  }
+
+  std::wcout << L"Stopped logging routine\n";
+}
+
 INT main() {
   DWORD dwRes = ERROR_SUCCESS;
 
-  // GUID providerKey = kProviderGUID;
-  // GUID sublayerKey = FWPM_LAYER_ALE_AUTH_CONNECT_V4;
-  // dwRes = installProvider(&providerKey, L"Network Filter Manager Provider",
-  //                         &sublayerKey, L"Sublayer 1");
-  // if (dwRes != ERROR_SUCCESS) {
-  //   return dwRes;
-  // }
+  /*dwRes = installCallout(NULL, &FWPM_LAYER_ALE_AUTH_CONNECT_V4, &kCalloutGUID,
+                         &kFilterGUID);
+  if (dwRes) {
+    return dwRes;
+  }
 
-   dwRes = installCallout(NULL, &FWPM_LAYER_ALE_AUTH_CONNECT_V4, &kCalloutGUID);
+  std::wcout << L"Filtering events\n";
 
-  // dwRes = uninstallProvider(&providerKey, &sublayerKey);
-  // if (dwRes != ERROR_SUCCESS) {
-  //   return dwRes;
-  // }
+  HANDLE hThread = CreateThread(NULL, 0, (PTHREAD_START_ROUTINE)logEventRoutine,
+                                NULL, 0, NULL);
+
+  while (TRUE) {
+    std::wstring wsInp;
+    std::wcin >> wsInp;
+    if (wsInp == L"stop") {
+      bIsStopped = TRUE;
+    }
+  }
+
+  dwRes = WaitForSingleObject(hThread, 60000);
+  if (dwRes) {
+    std::wcout << L"Failed to wait for threads\n";
+  }
+
+  std::wcout << L"Wait ok\n";*/
+
+  dwRes = uninstallCallout(&kCalloutGUID, &kFilterGUID);
+  if (dwRes) {
+    return dwRes;
+  }
 
   return dwRes;
 }

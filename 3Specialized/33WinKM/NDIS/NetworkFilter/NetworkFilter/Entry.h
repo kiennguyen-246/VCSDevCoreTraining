@@ -5,16 +5,31 @@
 #include <wdm.h>
 #include <fwpsk.h>
 
+#include "Public/ioctl.h"
+#include "Public/event.h"
+
 #define DbgPrint(x, ...) DbgPrint("[NetworkFilter] " x, __VA_ARGS__)
 
 typedef struct DriverData_ {
   PDEVICE_OBJECT pDeviceObject;
   UINT32 uiCalloutId;
+  PEvent pFirstEvent;
+  UINT32 uiEventId;
 } DriverData, *PDriverData;
 
 DriverData driverData;
 
 VOID DriverUnload(PDRIVER_OBJECT pDriverObject);
+
+NTSTATUS IrpMjUnsupported(PDEVICE_OBJECT pDeviceObject, PIRP pIrp);
+
+NTSTATUS IrpMjDeviceControl(PDEVICE_OBJECT pDeviceObject, PIRP pIrp);
+
+NTSTATUS ioctlGetEvent(PIRP pIrp, PIO_STACK_LOCATION pIoStackIrp,
+                        UINT32 *puiDataWritten);
+
+#pragma alloc_text(PAGE, IrpMjUnsupported)
+#pragma alloc_text(PAGE, IrpMjDeviceControl)
 
 NTSTATUS FwpsCalloutClassify(const FWPS_INCOMING_VALUES *pInFixedValues,
                              const FWPS_INCOMING_METADATA_VALUES *pInMetaValues,
