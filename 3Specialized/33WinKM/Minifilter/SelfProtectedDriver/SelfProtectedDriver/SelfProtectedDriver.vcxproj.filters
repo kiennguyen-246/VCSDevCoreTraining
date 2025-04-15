@@ -33,6 +33,9 @@
     <ClCompile Include="DriverData.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="COM.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entry.h">
@@ -45,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="COM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

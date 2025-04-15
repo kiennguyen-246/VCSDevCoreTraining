@@ -96,11 +96,13 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="COM.c" />
     <ClCompile Include="DriverData.c" />
     <ClCompile Include="Entry.c" />
     <ClCompile Include="Operations.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="COM.h" />
     <ClInclude Include="DriverData.h" />
     <ClInclude Include="Entry.h" />
     <ClInclude Include="Macros.h" />

@@ -3,6 +3,12 @@
 #define DbgPrint(x, ...) DbgPrint("[DKOM] " x, __VA_ARGS__)
 #define MFLT_COM_PORT_NAME L"\\DKOMCOM"
 
+#if NTDDI_VERSION < NTDDI_WIN10
+#define ExAllocatePool2 ExAllocatePoolWithTag
+#undef POOL_FLAG_NON_PAGED
+#define POOL_FLAG_NON_PAGED NonPagedPool
+#endif
+
 MFLT_DATA mfltData;
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
@@ -155,7 +161,9 @@ NTSTATUS COMPortMessageHandleRoutine(PFLT_GENERIC_WORKITEM pWorkItem,
   // LARGE_INTEGER liTimeOut = {0};
 
   ULONG ulPIDBufferSize = 64;
+
   PCHAR pcSendBuffer = ExAllocatePool2(POOL_FLAG_NON_PAGED, 3, 'dnes');
+
   if (pcSendBuffer == NULL) {
     DbgPrint("Allocate send buffer failed\n");
     FltFreeGenericWorkItem(pWorkItem);

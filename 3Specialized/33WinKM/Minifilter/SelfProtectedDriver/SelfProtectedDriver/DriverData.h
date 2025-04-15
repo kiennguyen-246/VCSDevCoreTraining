@@ -3,10 +3,11 @@
 
 #include "Macros.h"
 
-#define MAX_TARGET_PATH 10
-
-extern CONST WCHAR kTargetPaths[MAX_TARGET_PATH][260];
+extern CONST UINT32 kMaxTargetPath;
+extern CONST WCHAR kTargetPaths[][260];
 extern CONST ACCESS_MASK kAllowedAccess;
+extern CONST WCHAR kCOMPortName[];
+extern CONST WCHAR kPassword[];
 
 typedef struct _DRIVER_DATA {
   // The driver object

@@ -24,7 +24,7 @@ FLT_PREOP_CALLBACK_STATUS CreateFilePreops(PFLT_CALLBACK_DATA pData,
     return FLT_PREOP_SUCCESS_NO_CALLBACK;
   }
 
-  for (UINT32 i = 0; i < MAX_TARGET_PATH; ++i) {
+  for (UINT32 i = 0; i < kMaxTargetPath; ++i) {
     UNICODE_STRING usTargetPath;
     RtlInitUnicodeString(&usTargetPath, kTargetPaths[i]);
     if (!RtlCompareUnicodeString(&usTargetPath, &(pTargetFileObject->FileName),
