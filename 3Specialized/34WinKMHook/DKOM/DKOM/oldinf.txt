@@ -1,0 +1,139 @@
+;;;
+;;; DKOM
+;;;
+;;;
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"                         ;This is determined by the work this filter driver does
+ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}    ;This value is determined by the Class
+Provider    = %ProviderString%
+DriverVer   = 03/14/24,0.0.0.1
+CatalogFile = DKOM.cat
+PnpLockdown = 1
+
+[SourceDisksFiles]
+DKOM.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+[DestinationDirs]
+DKOMDownlevel.CopyDriverFiles = 12            ;%windir%\system32\drivers
+DKOMDownlevel.DelDriverFiles  = 12            ;%windir%\system32\drivers
+DKOM.Files                    = 13            ;driver store
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall.NT$ARCH$.10.0...25952]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = DKOM.Files,
+
+[DefaultInstall.NT$ARCH$.10.0...25952.Services]
+AddService          = %ServiceName%,,DKOM.Service
+
+;
+; Support sections
+;
+
+[DKOM.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %13%\%DriverName%.sys        ;%windir%\system32\drivers\
+Dependencies     = FltMgr
+ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ;SERVICE_DEMAND_START
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Activity Monitor"
+AddReg           = DKOM.AddRegistry
+
+[DKOM.AddRegistry]
+HKR,"Parameters","SupportedFeatures",0x00010001,0x3
+HKR,"Parameters\Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+HKR,"Parameters\Instances\"%Instance2.Name%,"Altitude",0x00000000,%Instance2.Altitude%
+HKR,"Parameters\Instances\"%Instance2.Name%,"Flags",0x00010001,%Instance2.Flags%
+HKR,"Parameters\Instances\"%Instance3.Name%,"Altitude",0x00000000,%Instance3.Altitude%
+HKR,"Parameters\Instances\"%Instance3.Name%,"Flags",0x00010001,%Instance3.Flags%
+
+[DKOM.Files]
+%DriverName%.sys
+
+;;
+;; Downlevel default install sections
+;;
+
+[DefaultInstall.NT$ARCH$]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = DKOMDownlevel.CopyDriverFiles
+
+[DefaultInstall.NT$ARCH$.Services]
+AddService          = %ServiceName%,,DKOMDownlevel.Service
+
+;;
+;; Downlevel default uninstall sections
+;;
+
+[DefaultUninstall.NT$ARCH$]
+LegacyUninstall = 1
+DelFiles        = DKOMDownlevel.DelDriverFiles
+
+[DefaultUninstall.NT$ARCH$.Services]
+DelService      = %ServiceName%,0x200      ;Ensure service is stopped before deleting
+
+;
+; Downlevel support sections
+;
+
+[DKOMDownlevel.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
+Dependencies     = FltMgr
+ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ;SERVICE_DEMAND_START
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Activity Monitor"
+AddReg           = DKOMDownlevel.AddRegistry
+
+[DKOMDownlevel.AddRegistry]
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+HKR,"Instances\"%Instance2.Name%,"Altitude",0x00000000,%Instance2.Altitude%
+HKR,"Instances\"%Instance2.Name%,"Flags",0x00010001,%Instance2.Flags%
+HKR,"Instances\"%Instance3.Name%,"Altitude",0x00000000,%Instance3.Altitude%
+HKR,"Instances\"%Instance3.Name%,"Flags",0x00010001,%Instance3.Flags%
+
+[DKOMDownlevel.CopyDriverFiles]
+%DriverName%.sys
+
+[DKOMDownlevel.DelDriverFiles]
+%DriverName%.sys
+
+;;
+;; String Section
+;;
+
+[Strings]
+ProviderString          = "TODO-Set-Provider"
+ServiceDescription      = "DKOM mini-filter driver"
+ServiceName             = "DKOM"
+DriverName              = "DKOM"
+DiskId1                 = "DKOM Device Installation Disk"
+
+;Instances specific information.
+DefaultInstance         = "DKOM - Top Instance"
+Instance1.Name          = "DKOM - Middle Instance"
+Instance1.Altitude      = "370000"
+Instance1.Flags         = 0x1          ; Suppress automatic attachments
+Instance2.Name          = "DKOM - Bottom Instance"
+Instance2.Altitude      = "361000"
+Instance2.Flags         = 0x1          ; Suppress automatic attachments
+Instance3.Name          = "DKOM - Top Instance"
+Instance3.Altitude      = "385100"
+Instance3.Flags         = 0x1          ; Suppress automatic attachments

@@ -19,21 +19,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="DKOM.inf">
+    <Inf Include="SelfProtectedDriver.inf">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Driver.c">
+    <ClCompile Include="Entry.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Operations.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DriverData.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MFLTData.h">
+    <ClInclude Include="Entry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="oldinf.txt" />
+    <ClInclude Include="Operations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DriverData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

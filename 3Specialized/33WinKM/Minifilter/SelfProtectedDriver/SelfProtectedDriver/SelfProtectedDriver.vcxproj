@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{012AD4DE-AC93-677F-7EFA-BDD9B06ED632}</ProjectGuid>
+    <ProjectGuid>{3775E029-BA88-42F8-A882-0D53657C3EC8}</ProjectGuid>
     <TemplateGuid>{dd38f7fc-d7bd-488b-9242-7d8754cde80d}</TemplateGuid>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration>Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
-    <RootNamespace>DKOM</RootNamespace>
+    <RootNamespace>SelfProtectedDriver</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -34,7 +34,6 @@
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
     <ConfigurationType>Driver</ConfigurationType>
     <DriverType>WDM</DriverType>
-    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
@@ -42,7 +41,6 @@
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
     <ConfigurationType>Driver</ConfigurationType>
     <DriverType>WDM</DriverType>
-    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
@@ -90,24 +88,23 @@
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
-    <Link>
-      <AdditionalDependencies>fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Inf Include="DKOM.inf" />
+    <Inf Include="SelfProtectedDriver.inf" />
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Driver.c" />
+    <ClCompile Include="DriverData.c" />
+    <ClCompile Include="Entry.c" />
+    <ClCompile Include="Operations.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MFLTData.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="oldinf.txt" />
+    <ClInclude Include="DriverData.h" />
+    <ClInclude Include="Entry.h" />
+    <ClInclude Include="Macros.h" />
+    <ClInclude Include="Operations.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
